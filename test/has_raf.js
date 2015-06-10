@@ -1,4 +1,4 @@
 
 // Condition is if we need request animation frame
 
-module.exports = !!window.requestAnimationFrame;
+export default !!window.requestAnimationFrame;
