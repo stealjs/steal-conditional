@@ -1,0 +1,28 @@
+{
+  "name": "steal-conditional",
+  "version": "0.0.1",
+  "description": "Conditional loading",
+  "main": "conditional.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stealjs/conditional.git"
+  },
+  "keywords": [
+    "StealJS"
+  ],
+  "author": "Bitovi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stealjs/conditional/issues"
+  },
+  "homepage": "https://github.com/stealjs/conditional",
+  "dependencies": {
+    "steal": "^0.10.5"
+  }
+}

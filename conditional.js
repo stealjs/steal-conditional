@@ -5,13 +5,13 @@
  *
  *     import $ from 'jquery/#{browser}';
  *
- *   Will first load the module 'browser' via `System.import('browser')` and 
+ *   Will first load the module 'browser' via `System.import('browser')` and
  *   take the default export of that module.
  *   If the default export is not a string, an error is thrown.
- * 
+ *
  *   We then substitute the string into the require to get the conditional resolution
  *   enabling environment-specific variations like:
- * 
+ *
  *     import $ from 'jquery/ie'
  *     import $ from 'jquery/firefox'
  *     import $ from 'jquery/chrome'
@@ -38,15 +38,17 @@
  */
 (function() {
 
+  var loader = require("@loader");
+
   var conditionalRegEx = /#\{[^\}]+\}|#\?.+$/;
 
-  hook('normalize', function(normalize) {
-    return function(name, parentName, parentAddress) {
+  var normalize = loader.normalize;
+  loader.normalize = function(name, parentName, parentAddress) {
       var loader = this;
       var conditionalMatch = name.match(conditionalRegEx);
       if (conditionalMatch) {
         var substitution = conditionalMatch[0][1] != '?';
-        
+
         var conditionModule = substitution ? conditionalMatch[0].substr(2, conditionalMatch[0].length - 3) : conditionalMatch[0].substr(2);
 
         if (conditionModule[0] == '.' || conditionModule.indexOf('/') != -1)
@@ -62,7 +64,7 @@
         var booleanNegation = !substitution && conditionModule[0] == '~';
         if (booleanNegation)
           conditionModule = conditionModule.substr(1);
-        
+
         return loader['import'](conditionModule, parentName, parentAddress)
         .then(function(m) {
           var conditionValue = readMemberExpression(conditionExport, m);
@@ -86,6 +88,5 @@
 
       return Promise.resolve(normalize.call(loader, name, parentName, parentAddress));
     };
-  });
 
 })();
