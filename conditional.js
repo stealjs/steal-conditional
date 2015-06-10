@@ -43,6 +43,14 @@
   var conditionalRegEx = /#\{[^\}]+\}|#\?.+$/;
 
   var normalize = loader.normalize;
+
+  function readMemberExpression(p, value) {
+    var pParts = p.split('.');
+    while (pParts.length)
+      value = value[pParts.shift()];
+    return value;
+  }
+
   loader.normalize = function(name, parentName, parentAddress) {
       var loader = this;
       var conditionalMatch = name.match(conditionalRegEx);
@@ -79,8 +87,11 @@
               throw new TypeError('The condition value for ' + conditionalMatch[0] + ' isn\'t resolving to a boolean.');
             if (booleanNegation)
               conditionValue = !conditionValue;
-            if (!conditionValue)
+            if (!conditionValue) {
               name = '@empty';
+            } else {
+              name = name.replace(conditionalRegEx, '');
+            }
           }
           return normalize.call(loader, name, parentName, parentAddress);
         });
