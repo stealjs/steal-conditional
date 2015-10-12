@@ -42,6 +42,12 @@
 
   var conditionalRegEx = /#\{[^\}]+\}|#\?.+$/;
 
+  loader.set("@@conditional-helpers", loader.newModule({
+    isConditionalModuleName: function(moduleName){
+      return conditionalRegEx.test(moduleName);
+    }
+  });
+
   var normalize = loader.normalize;
 
   function readMemberExpression(p, value) {
