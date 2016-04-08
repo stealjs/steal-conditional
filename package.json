@@ -7,7 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "jshint": "jshint conditional.js test/. --config",
+    "test": "npm run jshint && testee test/index.html --browsers firefox --reporter Spec"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,12 @@
   },
   "homepage": "https://github.com/stealjs/conditional",
   "dependencies": {
-    "steal": "^0.10.5"
+    "steal": "^0.15.0"
+  },
+  "devDependencies": {
+    "jshint": "^2.9.1",
+    "qunitjs": "^1.23.0",
+    "steal-qunit": "^0.1.1",
+    "testee": "^0.2.5"
   }
 }
