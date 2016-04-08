@@ -36,74 +36,108 @@
  *     import 'es5-shim#?conditions.needs-es5shim'
  *
  */
-(function() {
 
-  var loader = require("@loader");
+function addConditionals(loader) {
+	var conditionalRegEx = /#\{[^\}]+\}|#\?.+$/;
 
-  var conditionalRegEx = /#\{[^\}]+\}|#\?.+$/;
+	if (loader._extensions) {
+		loader._extensions.push(addConditionals);
+	}
 
-  loader.set("@@conditional-helpers", loader.newModule({
-    isConditionalModuleName: function(moduleName){
-      return conditionalRegEx.test(moduleName);
-    }
-  }));
+	loader.set("@@conditional-helpers", loader.newModule({
+		isConditionalModuleName: function(moduleName){
+			return conditionalRegEx.test(moduleName);
+		}
+	}));
 
-  var normalize = loader.normalize;
+	var normalize = loader.normalize;
 
-  function readMemberExpression(p, value) {
-    var pParts = p.split('.');
-    while (pParts.length)
-      value = value[pParts.shift()];
-    return value;
-  }
+	function readMemberExpression(p, value) {
+		var pParts = p.split('.');
+		while (pParts.length) {
+			value = value[pParts.shift()];
+		}
+		return value;
+	}
 
-  loader.normalize = function(name, parentName, parentAddress) {
-      var loader = this;
-      var conditionalMatch = name.match(conditionalRegEx);
-      if (conditionalMatch) {
-        var substitution = conditionalMatch[0][1] != '?';
+	loader.normalize = function(name, parentName, parentAddress) {
+		var loader = this;
+		var conditionalMatch = name.match(conditionalRegEx);
+		if (conditionalMatch) {
+			var substitution = conditionalMatch[0][1] !== '?';
 
-        var conditionModule = substitution ? conditionalMatch[0].substr(2, conditionalMatch[0].length - 3) : conditionalMatch[0].substr(2);
+			var conditionModule = substitution ?
+				conditionalMatch[0].substr(2, conditionalMatch[0].length - 3) :
+				conditionalMatch[0].substr(2);
 
-        if (conditionModule[0] == '.' || conditionModule.indexOf('/') != -1)
-          throw new TypeError('Invalid condition ' + conditionalMatch[0] + '\n\tCondition modules cannot contain . or / in the name.');
+			if (conditionModule[0] === '.' || conditionModule.indexOf('/') !== -1) {
+				throw new TypeError(
+					'Invalid condition ' +
+					conditionalMatch[0] +
+					'\n\tCondition modules cannot contain . or / in the name.'
+				);
+			}
 
-        var conditionExport = 'default';
-        var conditionExportIndex = conditionModule.indexOf('.');
-        if (conditionExportIndex != -1) {
-          conditionExport = conditionModule.substr(conditionExportIndex + 1);
-          conditionModule = conditionModule.substr(0, conditionExportIndex);
-        }
+			var conditionExport = 'default';
+			var conditionExportIndex = conditionModule.indexOf('.');
 
-        var booleanNegation = !substitution && conditionModule[0] == '~';
-        if (booleanNegation)
-          conditionModule = conditionModule.substr(1);
+			if (conditionExportIndex !== -1) {
+				conditionExport = conditionModule.substr(conditionExportIndex + 1);
+				conditionModule = conditionModule.substr(0, conditionExportIndex);
+			}
 
-        return loader['import'](conditionModule, parentName, parentAddress)
-        .then(function(m) {
-          var conditionValue = readMemberExpression(conditionExport, m);
+			var booleanNegation = !substitution && conditionModule[0] === '~';
+			if (booleanNegation) {
+				conditionModule = conditionModule.substr(1);
+			}
 
-          if (substitution) {
-            if (typeof conditionValue !== 'string')
-              throw new TypeError('The condition value for ' + conditionalMatch[0] + ' doesn\'t resolving to a string.');
-            name = name.replace(conditionalRegEx, conditionValue);
-          }
-          else {
-            if (typeof conditionValue !== 'boolean')
-              throw new TypeError('The condition value for ' + conditionalMatch[0] + ' isn\'t resolving to a boolean.');
-            if (booleanNegation)
-              conditionValue = !conditionValue;
-            if (!conditionValue) {
-              name = '@empty';
-            } else {
-              name = name.replace(conditionalRegEx, '');
-            }
-          }
-          return normalize.call(loader, name, parentName, parentAddress);
-        });
-      }
+			return loader['import'](conditionModule, parentName, parentAddress)
+			.then(function(m) {
+				var conditionValue = readMemberExpression(conditionExport, m);
 
-      return Promise.resolve(normalize.call(loader, name, parentName, parentAddress));
-    };
+				if (substitution) {
+					if (typeof conditionValue !== 'string') {
+						throw new TypeError(
+							'The condition value for ' +
+							conditionalMatch[0] +
+							' doesn\'t resolve to a string.'
+						);
+					}
+					name = name.replace(conditionalRegEx, conditionValue);
+				}
+				else {
+					if (typeof conditionValue !== 'boolean') {
+						throw new TypeError(
+							'The condition value for ' +
+							conditionalMatch[0] +
+							' isn\'t resolving to a boolean.'
+						);
+					}
+					if (booleanNegation) {
+						conditionValue = !conditionValue;
+					}
+					if (!conditionValue) {
+						name = '@empty';
+					} else {
+						name = name.replace(conditionalRegEx, '');
+					}
+				}
 
-})();
+				if (name === '@empty') {
+					return normalize.call(loader, name, parentName, parentAddress);
+				} else {
+					// call the full normalize in case the module name
+					// is an npm package (that needs to be normalized)
+					return loader.normalize.call(loader, name, parentName, parentAddress);
+				}
+			});
+		}
+
+		return Promise.resolve(normalize.call(loader, name, parentName, parentAddress));
+	};
+}
+
+if (typeof System !== 'undefined') {
+	addConditionals(System);
+}
+
