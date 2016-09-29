@@ -1,6 +1,26 @@
 
 # steal-conditional
 
+## Installation
+
+Install the npm package running: 
+
+```js
+npm install steal-conditional --save-dev
+```
+
+then, add the extension to your package.json `configDependencies` so `steal` loads it before any application module
+
+```
+
+"system": {
+  "configDependencies": [
+    "./node_modules/steal-conditional/conditional"
+  ]
+}
+
+```
+
 ## Conditions Extension
 
 Allows a condition module to alter the resolution of an import via syntax:
