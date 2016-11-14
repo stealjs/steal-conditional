@@ -196,6 +196,48 @@ QUnit.module("with boolean conditional in a npm package name", function(hooks) {
 	});
 });
 
+QUnit.module("conditional module build", function(hooks) {
+	var env;
+
+	hooks.beforeEach(function() {
+		env = loader.env;
+
+		loader.env = "build-development";
+
+		td.replace(loader, "getModuleLoad", function() {
+			return { metadata: {} };
+		});
+
+		td.replace(loader, "import", function(conditionModule) {
+			var m = { default: true };
+
+			return conditionModule === "needs-jquery" ?
+				Promise.resolve(m) :
+				Promise.reject();
+		});
+	});
+
+	hooks.afterEach(function() {
+		td.reset();
+		loader.env = env;
+	});
+
+	QUnit.test("conditional module is added to bundles", function(assert) {
+		var done = assert.async();
+
+		loader.normalize("jquery#?needs-jquery")
+			.then(function(name) {
+				assert.ok(loader.bundle.indexOf("jquery") !== -1);
+				assert.equal(name, "@empty");
+				done();
+			})
+			.catch(function(err) {
+				assert.notOk(err, "should not fail");
+				done();
+			});
+	});
+});
+
 
 function testInvalidConditionModuleExport(assert) {
 	var done = assert.async();
