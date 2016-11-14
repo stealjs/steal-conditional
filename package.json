@@ -1,6 +1,6 @@
 {
   "name": "steal-conditional",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Conditional loading",
   "main": "conditional.js",
   "directories": {
