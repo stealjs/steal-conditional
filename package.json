@@ -28,7 +28,6 @@
   },
   "devDependencies": {
     "jshint": "^2.9.1",
-    "qunitjs": "^1.23.0",
     "steal-qunit": "^0.1.1",
     "testdouble": "^1.4.1",
     "testee": "^0.2.5"

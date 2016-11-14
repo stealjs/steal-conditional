@@ -1,3 +1,5 @@
+var QUnit = require("steal-qunit");
+
 QUnit.module("conditional extension normalize");
 
 require("./basics");

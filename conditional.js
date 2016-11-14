@@ -71,6 +71,7 @@ function addConditionals(loader) {
 
 	loader.normalize = function(name, parentName, parentAddress) {
 		var loader = this;
+
 		var conditionalMatch = name.match(conditionalRegEx);
 		if (conditionalMatch) {
 			var substitution = conditionalMatch[0][1] !== "?";
@@ -100,18 +101,37 @@ function addConditionals(loader) {
 				conditionModule = conditionModule.substr(1);
 			}
 
-			var pluginLoader = loader.pluginLoader || loader;
+			var handleConditionalBuild = function(m) {
+				loader.bundle = typeof loader.bundle === "undefined" ?
+					[] : loader.bundle;
 
-			return pluginLoader["import"](conditionModule, parentName, parentAddress)
-			.then(function(m) {
-				return pluginLoader
-					.normalize(conditionModule, parentName, parentAddress)
-					.then(function(fullName) {
-						includeInBuild(pluginLoader, fullName);
-						return m;
-					});
-			})
-			.then(function(m) {
+				if (substitution) {
+					var cases = readMemberExpression("cases", m);
+
+					cases = isArray(cases) ? cases : [];
+
+					// if conditionModule define a `cases` property, use it
+					// to add bundles for each possible option that might be
+					// imported using string substitution.
+					for (var i = 0; i < cases.length; i += 1) {
+						var mod = cases[i];
+						var modName = name.replace(conditionalRegEx, mod);
+						var isBundle = loader.bundle.indexOf(modName) !== -1;
+
+						if (modName && !isBundle) {
+							loader.bundle.push(modName);
+						}
+					}
+				}
+				else {
+					loader.bundle.push(name.replace(conditionalRegEx, ""));
+				}
+
+				name = "@empty";
+				return normalize.call(loader, name, parentName, parentAddress);
+			};
+
+			var handleConditionalEval = function(m) {
 				var conditionValue = (typeof m === "object") ?
 					readMemberExpression(conditionExport, m) : m;
 
@@ -122,22 +142,6 @@ function addConditionals(loader) {
 							conditionalMatch[0] +
 							" doesn't resolve to a string."
 						);
-					}
-
-					var cases = readMemberExpression("cases", m);
-
-					// if conditionModule define a `cases` property, use it
-					// to add bundles for each possible option that might be
-					// imported using string substitution.
-					if (isArray(cases) && loader.bundles) {
-						for(var i = 0; i < cases.length; i += 1) {
-							var _case = cases[i];
-							var modName = name.replace(conditionalRegEx, _case);
-
-							if (_case && !loader.bundles[modName]) {
-								loader.bundles[modName] = modName;
-							}
-						}
 					}
 
 					name = name.replace(conditionalRegEx, conditionValue);
@@ -167,6 +171,24 @@ function addConditionals(loader) {
 					// is an npm package (that needs to be normalized)
 					return loader.normalize.call(loader, name, parentName, parentAddress);
 				}
+			};
+
+			var pluginLoader = loader.pluginLoader || loader;
+			return pluginLoader["import"](conditionModule, parentName, parentAddress)
+			.then(function(m) {
+				return pluginLoader
+					.normalize(conditionModule, parentName, parentAddress)
+					.then(function(fullName) {
+						includeInBuild(pluginLoader, fullName);
+						return m;
+					});
+			})
+			.then(function(m) {
+				var isBuild = (loader.env || "").indexOf("build") === 0;
+
+				return isBuild ?
+					handleConditionalBuild(m) :
+					handleConditionalEval(m);
 			});
 		}
 
