@@ -69,7 +69,7 @@ function addConditionals(loader) {
 		load.metadata.includeInBuild = true;
 	}
 
-	loader.normalize = function(name, parentName, parentAddress) {
+	loader.normalize = function(name, parentName, parentAddress, pluginNormalize) {
 		var loader = this;
 
 		var conditionalMatch = name.match(conditionalRegEx);
@@ -128,7 +128,7 @@ function addConditionals(loader) {
 				}
 
 				name = "@empty";
-				return normalize.call(loader, name, parentName, parentAddress);
+				return normalize.call(loader, name, parentName, parentAddress, pluginNormalize);
 			};
 
 			var handleConditionalEval = function(m) {
@@ -165,11 +165,11 @@ function addConditionals(loader) {
 				}
 
 				if (name === "@empty") {
-					return normalize.call(loader, name, parentName, parentAddress);
+					return normalize.call(loader, name, parentName, parentAddress, pluginNormalize);
 				} else {
 					// call the full normalize in case the module name
 					// is an npm package (that needs to be normalized)
-					return loader.normalize.call(loader, name, parentName, parentAddress);
+					return loader.normalize.call(loader, name, parentName, parentAddress, pluginNormalize);
 				}
 			};
 
@@ -177,7 +177,7 @@ function addConditionals(loader) {
 			return pluginLoader["import"](conditionModule, parentName, parentAddress)
 			.then(function(m) {
 				return pluginLoader
-					.normalize(conditionModule, parentName, parentAddress)
+					.normalize(conditionModule, parentName, parentAddress, pluginNormalize)
 					.then(function(fullName) {
 						includeInBuild(pluginLoader, fullName);
 						return m;
@@ -192,7 +192,7 @@ function addConditionals(loader) {
 			});
 		}
 
-		return Promise.resolve(normalize.call(loader, name, parentName, parentAddress));
+		return Promise.resolve(normalize.call(loader, name, parentName, parentAddress, pluginNormalize));
 	};
 }
 
