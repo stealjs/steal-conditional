@@ -23,6 +23,7 @@
 		"module": true,
 		"require": true,
 		"Promise": true,
-		"console": true
+		"console": true,
+		"exports": true
 	}
 }

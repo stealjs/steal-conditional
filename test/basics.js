@@ -60,3 +60,18 @@ QUnit.module("uses pluginLoader's import if available", function(hooks) {
 	});
 });
 
+QUnit.test("normalize with other plugins work", function(assert) {
+	var done = assert.async();
+
+	assert.expect(1);
+
+	loader.config({
+		ext: { noop: "steal-noop.js" }
+	});
+
+	loader.normalize("foo.noop")
+		.then(function(name) {
+			assert.equal(name, "foo.noop!steal-noop.js");
+			done();
+		});
+});
