@@ -21,7 +21,6 @@
 		"QUnit": true,
 		"steal": true,
 		"System": true,
-		"Promise": true,
-		"console": true
+		"define": true
 	}
 }
