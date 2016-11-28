@@ -131,6 +131,39 @@ define(['module'], function(module) {
 							.then(function(variations) {
 								var promises = [];
 
+								/*
+								 * With an conditional import like this:
+								 *
+								 * import 'locate/#{lang}';
+								 *
+								 * and an app tree that looks like the one below:
+								 *
+								 * locale
+								 * ├── ar.js
+								 * ├── en.js
+								 * ├── es.js
+								 * ├── hi.js
+								 * └── zh.js
+								 *
+								 * `variations` will be an array of the files
+								 * relative to the `locale` folder, e.g:
+								 *
+								 * `['ar.js', 'en.js', 'es.js', 'hi.js', 'zh.js']`
+								 *
+								 * we iterate over the array, remove the extension,
+								 * then take the original module name with the
+								 * substitution syntax and replace it with the
+								 * variation name, after this we get the following
+								 * modules names:
+								 *
+								 * `['locale/ar', 'local/en', ..., 'locale/zh']`
+								 *
+								 * We run each of those module names through the
+								 * `normalize` hook to handle any relative paths,
+								 * and finally we add them to `loader.bundle` (if
+								 * not added already) to make sure we get bundles
+								 * for each variation when the app is built.
+								 */
 								for (var i = 0; i < variations.length; i += 1) {
 									var variation = variations[i].replace(".js", "");
 									var modName = nameWithConditional.replace(conditionalRegEx, variation);
