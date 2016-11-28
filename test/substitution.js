@@ -83,51 +83,6 @@ QUnit.module("with valid es6 substitution module export", function(hooks) {
 			   testConditionModuleInBuild);
 });
 
-QUnit.module("if substitution module exports a 'cases' property", function(hooks) {
-	var env;
-
-	hooks.beforeEach(function() {
-		env = loader.env;
-
-		loader.env = "build-development";
-
-		td.replace(loader, "getModuleLoad", function() {
-			return { metadata: {} };
-		});
-
-		td.replace(loader, "import", function(conditionModule) {
-			var m = {default: "chrome", cases: ["chrome", "ie"]};
-
-			return conditionModule === "browser" ?
-				Promise.resolve(m) :
-				Promise.reject();
-		});
-	});
-
-	hooks.afterEach(function() {
-		td.reset();
-		loader.env = env;
-	});
-
-	QUnit.test("adds the 'cases' modules to the bundles if building code", function(assert) {
-		var done = assert.async();
-
-		// browser.hasFoo must be a boolean
-		loader.normalize("jquery/#{browser}")
-			.then(function(name) {
-				assert.ok(loader.bundle.indexOf("jquery/ie") !== -1);
-				assert.ok(loader.bundle.indexOf("jquery/chrome") !== -1);
-				assert.ok(name, "@empty");
-				done();
-			})
-			.catch(function(err) {
-				assert.notOk(err, "should not fail");
-				done();
-			});
-	});
-});
-
-
 function testInvalidSubstitutionModuleExport(assert) {
 	var done = assert.async();
 
@@ -147,7 +102,7 @@ function testInvalidSubstitutionModuleExport(assert) {
 function testValidSubstitutionExport(assert) {
 	var done = assert.async();
 
-	// browser must default export a string
+	// browser's default export must be a string
 	loader.normalize("jquery/#{browser}")
 		.then(function(name) {
 			assert.equal(name, "jquery/chrome");
@@ -162,7 +117,6 @@ function testValidSubstitutionExport(assert) {
 function testConditionModuleInBuild(assert) {
 	var done = assert.async();
 
-	// browser.hasFoo must be a boolean
 	loader.normalize("jquery/#{browser}")
 		.then(function(name) {
 			var load = loader.getModuleLoad("browser");

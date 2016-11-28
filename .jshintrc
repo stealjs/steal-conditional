@@ -16,14 +16,12 @@
 	"smarttabs": true,
 	"maxerr" : 200,
 	"browser": true,
+	"node": true,
 	"globals": {
 		"QUnit": true,
 		"steal": true,
 		"System": true,
-		"module": true,
-		"require": true,
 		"Promise": true,
-		"console": true,
-		"exports": true
+		"console": true
 	}
 }

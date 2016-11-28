@@ -30,11 +30,12 @@
   "homepage": "https://github.com/stealjs/conditional",
   "devDependencies": {
     "jshint": "^2.9.1",
-    "steal": "^1.0.0-rc.10",
+    "steal": "^1.0.0-rc.11",
     "steal-css": "^1.0.0-rc.0",
     "steal-qunit": "^0.1.1",
     "testdouble": "^1.4.1",
-    "testee": "^0.2.5"
+    "testee": "^0.2.5",
+    "glob": "^7.1.1"
   },
   "system": {
     "transpiler": "babel",

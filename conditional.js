@@ -1,5 +1,10 @@
+"format cjs";
+
 function addConditionals(loader) {
 	var conditionalRegEx = /#\{[^\}]+\}|#\?.+$/;
+
+	var isNode = typeof process === "object" &&
+		{}.toString.call(process) === "[object process]";
 
 	if (loader._extensions) {
 		loader._extensions.push(addConditionals);
@@ -21,13 +26,21 @@ function addConditionals(loader) {
 		return value;
 	}
 
-	function isArray(arg) {
-		return Object.prototype.toString.call(arg) === "[object Array]";
-	}
-
 	function includeInBuild(loader, name) {
 		var load = loader.getModuleLoad(name);
 		load.metadata.includeInBuild = true;
+	}
+
+	// get some node modules through @node-require which is a noop in the browser
+	function getGlob() {
+		if (isNode) {
+			return loader.import("@node-require", { name: module.id })
+			.then(function(nodeRequire) {
+				return nodeRequire("glob");
+			});
+		}
+
+		return Promise.resolve();
 	}
 
 	loader.normalize = function(name, parentName, parentAddress, pluginNormalize) {
@@ -62,35 +75,93 @@ function addConditionals(loader) {
 				conditionModule = conditionModule.substr(1);
 			}
 
-			var handleConditionalBuild = function(m) {
+			var handleConditionalBuild = function() {};
+
+			//!steal-remove-start
+			handleConditionalBuild = function() {
+				var setBundlesPromise = Promise.resolve();
+
+				// make sure loader.bundle is an array
 				loader.bundle = typeof loader.bundle === "undefined" ?
 					[] : loader.bundle;
 
 				if (substitution) {
-					var cases = readMemberExpression("cases", m);
+					var glob = null;
+					var nameWithConditional = name;
 
-					cases = isArray(cases) ? cases : [];
+					// remove the conditional and the trailing slash
+					var nameWithoutConditional = name
+						.replace(conditionalRegEx, "")
+						.replace(/\/+$/, "");
 
-					// if conditionModule define a `cases` property, use it
-					// to add bundles for each possible option that might be
-					// imported using string substitution.
-					for (var i = 0; i < cases.length; i += 1) {
-						var mod = cases[i];
-						var modName = name.replace(conditionalRegEx, mod);
-						var isBundle = loader.bundle.indexOf(modName) !== -1;
-
-						if (modName && !isBundle) {
-							loader.bundle.push(modName);
+					setBundlesPromise = getGlob()
+					.then(function(nodeGlob) {
+						// in the browser we don't load the node modules
+						if (!nodeGlob) {
+							throw new Error("glob module not loaded");
 						}
-					}
+
+						// make glob available down the pipeline
+						glob = nodeGlob;
+
+						return normalize.call(loader, nameWithoutConditional,
+							parentName, parentAddress, pluginNormalize);
+					})
+					.then(function(normalized) {
+						return loader.locate({ name: normalized + "/*", metadata: {} });
+					})
+					.then(function(address) {
+						var path = address.replace("file:", "");
+						var parts = path.split("/");
+						var pattern = parts.pop();
+
+						return new Promise(function(resolve, reject) {
+							var options = {
+								cwd: parts.join("/"),
+								dot: true, nobrace: true, noglobstar: true,
+								noext: true, nodir: true
+							};
+
+							glob(pattern, options, function(err, files) {
+								if (err) { reject(err); }
+								resolve(files);
+							});
+						});
+					})
+					.then(function(variations) {
+						var promises = [];
+
+						for (var i = 0; i < variations.length; i += 1) {
+							var variation = variations[i].replace(".js", "");
+							var modName = nameWithConditional.replace(conditionalRegEx, variation);
+
+							var promise = loader.normalize.call(loader, modName,
+								parentName, parentAddress, pluginNormalize);
+
+							promises.push(promise.then(function(normalized) {
+								var isBundle = loader.bundle.indexOf(normalized) !== -1;
+
+								if (!isBundle) {
+									loader.bundle.push(normalized);
+								}
+							}));
+						}
+
+						return Promise.all(promises);
+					});
 				}
+				// boolean conditional syntax
 				else {
 					loader.bundle.push(name.replace(conditionalRegEx, ""));
 				}
 
 				name = "@empty";
-				return normalize.call(loader, name, parentName, parentAddress, pluginNormalize);
+				return setBundlesPromise.then(function() {
+					return normalize.call(loader, name, parentName,
+						parentAddress, pluginNormalize);
+				});
 			};
+			//!steal-remove-end
 
 			var handleConditionalEval = function(m) {
 				var conditionValue = (typeof m === "object") ?
@@ -148,7 +219,7 @@ function addConditionals(loader) {
 				var isBuild = (loader.env || "").indexOf("build") === 0;
 
 				return isBuild ?
-					handleConditionalBuild(m) :
+					handleConditionalBuild() :
 					handleConditionalEval(m);
 			});
 		}
