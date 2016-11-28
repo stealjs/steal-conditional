@@ -61,7 +61,7 @@ Where the `grade` export of the `browser` module is taken for substitution.
 Note that `/` and a leading `.` are not permitted within conditional modules
 so that this syntax can be well-defined.
 
-## Boolean Conditionals
+### Boolean Conditionals
 
 For polyfill modules, that are used as imports but have no module value,
 a binary conditional allows a module not to be loaded at all if not needed:
@@ -75,3 +75,13 @@ These conditions can also be negated via:
 ```
 import "es5-shim#?~is-es5-compatible"
 ```
+
+### Bundling conditional modules
+
+By default, the condition module (the one loaded first to determine whether to
+load the module in the boolean conditionals or which module to load when using
+string interpolation) will be added to the main bundle, this is the bundle loaded
+first that starts your application. For boolean conditionals, a separate bundle is
+created for the conditionally loaded module; and for string substitution, StealTools
+will glob the filesystem to detect the possible variations and seperate bundles will
+be created for each of them.
