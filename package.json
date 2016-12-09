@@ -29,13 +29,13 @@
   },
   "homepage": "https://github.com/stealjs/conditional",
   "devDependencies": {
-    "glob": "^7.1.1",
     "jshint": "^2.9.1",
     "steal": "^1.0.8",
     "steal-css": "^1.1.1",
     "steal-qunit": "^0.1.1",
     "testdouble": "^1.4.1",
-    "testee": "^0.2.5"
+    "testee": "^0.3.0",
+    "glob": "^7.1.1"
   },
   "steal": {
     "plugins": ["steal-css"],
