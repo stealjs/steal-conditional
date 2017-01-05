@@ -266,7 +266,7 @@ load the polyfill when it's needed.
 
 ### The boolean conditional syntax
 
-Let's change the `import` in _index.html_ to look like this:
+Let's change the `import` in _index.js_ to look like this:
 
 ```js
 import "document-register-element#?needs-polyfill";
