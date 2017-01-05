@@ -65,6 +65,12 @@ a binary conditional allows a module not to be loaded at all if not needed:
 import 'es5-shim#?conditions.needs-es5shim'
 ```
 
+These conditions can also be negated via:
+
+```js
+import 'es5-shim#?~conditions.supports-es5'
+```
+
 ## License
 
 MIT
