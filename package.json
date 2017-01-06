@@ -1,6 +1,6 @@
 {
   "name": "steal-conditional",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Conditional loading",
   "main": "conditional.js",
   "directories": {
@@ -38,7 +38,9 @@
     "glob": "^7.1.1"
   },
   "steal": {
-    "plugins": ["steal-css"],
+    "plugins": [
+      "steal-css"
+    ],
     "map": {
       "testdouble": "testdouble/dist/testdouble"
     }
