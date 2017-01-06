@@ -8,7 +8,7 @@
 <style>.contents { display: none; }</style>
 
 StealJS supports conditional module loading through the [steal-conditional](https://github.com/stealjs/steal-conditional) extension;
-2 types of conditionals are currently supported, string substitution and boolean.
+2 types of conditionals are currently supported, [StealJS.guides.substitution_conditional_loading string substitution] and boolean.
 
 In this guide, we'll build a small demo that uses the boolean conditional syntax to import a
 [Custom Elements V1](https://html.spec.whatwg.org/multipage/scripting.html#custom-elements) [polyfill](https://github.com/WebReflection/document-register-element) only when the host browser doesn't support it natively.
@@ -180,7 +180,7 @@ MyElement.prototype._makeCaptionElement = function() {
 customElements.define("my-element", MyElement);
 ```
 
-Yikes! that's a lot of code there! But bear with me, let's break it up and smaller pieces and figure out what's going on:
+Yikes! that's a lot of code there! But bear with me, let's break it up in smaller pieces and figure out what's going on:
 
 ```js
 import "document-register-element";
@@ -274,7 +274,7 @@ import "document-register-element#?needs-polyfill";
 
 This should look a little bit weird to you, if it doesn't, you might want to read this [article first](http://www.2ality.com/2014/09/es6-modules-final.html).
 
-The part before the `#?` is the polyfill package name we had before, the interesting bit is the text after; `needs-polyfill` is a module name, the `steal-conditional` extension will load it first and grab [its default export](https://developer.mozilla.org/en/docs/web/javascript/reference/statements/export#Using_the_default_export); if the value is not a boolean it will throw an error, otherwise `document-register-element` will be loaded only if the value is `true`.
+The part before the `#?` is the polyfill package name we had before, the interesting bit is the text after; `needs-polyfill` is a module name, the `steal-conditional` extension will load it first and grab [its default export](https://developer.mozilla.org/en/docs/web/javascript/reference/statements/export#Using_the_default_export); if the value is not a boolean it will throw an error, otherwise `document-register-element` will only be loaded if the value is `true`.
 
 > It is also possible to negate conditionals via:
 > ```js

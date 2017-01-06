@@ -8,7 +8,7 @@
 <style>.contents { display: none; }</style>
 
 StealJS supports conditional module loading through the [steal-conditional](https://github.com/stealjs/steal-conditional) extension;
-2 types of conditionals are currently supported, string substitution and boolean.
+2 types of conditionals are currently supported, string substitution and [StealJS.guides.boolean_conditional_loading boolean].
 
 In this guide, we'll build a small demo that uses the string substitution conditional syntax to import a random translation of the famous "Hello, World!".
 
@@ -59,7 +59,7 @@ Next install and run a local fileserver. [http-server](https://www.npmjs.com/pac
 > npm install http-server --save
 ```
 
-Next edit your `package.json` so that the start script looks like:
+Next, edit your `package.json` so that the start script looks like:
 
 ```json
 "scripts": {
@@ -117,7 +117,7 @@ Create _index.js_ with the following:
 document.getElementById("header").textContent = "Hello, World!";
 ```
 
-Nothing interesting here, we grab the element with the header id and then set its `textContent` property to `Hello, World!`.
+Nothing interesting here, we grab the element with the `header` id and then set its `textContent` property to `Hello, World!`.
 
 ### Use steal.js in your page
 
@@ -193,7 +193,7 @@ translation to use its value to populate the `h1` tag in _index.html_.
 
 We could import each individual module and then write a simple algorithm to pick one
 of the translation values, in our example, that's an ok solution since we only have 3
-translation modules, but you can imagine how annoying it would be to do the same, with
+translation modules, but you can imagine how annoying it would be to do the same with
 100 or even more modules.
 
 ### The string substitution syntax
