@@ -104,7 +104,10 @@ define(['module'], function(module) {
 								// make glob available down the pipeline
 								glob = nodeGlob;
 
-								return normalize.call(loader, nameWithoutConditional,
+								// call the full normalize in case the condition
+								// module is using the tilde lookup scheme or the
+								// package name
+								return loader.normalize.call(loader, nameWithoutConditional,
 									parentName, parentAddress, pluginNormalize);
 							})
 							.then(function(normalized) {
