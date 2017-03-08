@@ -54,16 +54,10 @@ define(['module'], function(module) {
 					conditionalMatch[0].substr(2, conditionalMatch[0].length - 3) :
 					conditionalMatch[0].substr(2);
 
-				if (conditionModule[0] === "." || conditionModule.indexOf("/") !== -1) {
-					throw new TypeError(
-						"Invalid condition " +
-							conditionalMatch[0] +
-							"\n\tCondition modules cannot contain . or / in the name."
-					);
-				}
-
 				var conditionExport = "default";
-				var conditionExportIndex = conditionModule.indexOf(".");
+				var conditionExportIndex = conditionModule
+					.replace(/^(?:\.+\/)+./g, "") // removes './' or '../' in relative names
+					.indexOf(".");
 
 				if (conditionExportIndex !== -1) {
 					conditionExport = conditionModule.substr(conditionExportIndex + 1);
@@ -242,7 +236,7 @@ define(['module'], function(module) {
 				};
 
 				var pluginLoader = loader.pluginLoader || loader;
-				return pluginLoader["import"](conditionModule, parentName, parentAddress)
+				return pluginLoader["import"](conditionModule, { name: parentName, address: parentAddress })
 					.then(function(m) {
 						return pluginLoader
 							.normalize(conditionModule, parentName, parentAddress, pluginNormalize)

@@ -3,22 +3,24 @@ var loader = require("@loader");
 
 require("../conditional");
 
-QUnit.test("throws if condition has a dot in the name", function(assert) {
-	assert.throws(
-		function() {
-			loader.normalize("jquery/#{.browser}");
-		},
-		/Condition modules cannot contain ./
-	);
-});
+QUnit.test("works with relative condition modules", function(assert) {
+	var done = assert.async();
 
-QUnit.test("throws if condition has a / in the name", function(assert) {
-	assert.throws(
-		function() {
-			loader.normalize("jquery/#{/browser}");
-		},
-		/Condition modules cannot contain . or \//
-	);
+	td.replace(loader, "fetch", function(load) {
+		return (load.name.indexOf("#foo/browser") !== -1) ?
+			Promise.resolve("module.exports = 'chrome';") :
+			Promise.reject();
+	});
+
+	loader.normalize("jquery/#{../browser}", "steal-conditional@0.0.1#foo/bar/main")
+		.then(function(name) {
+			assert.equal(name, "jquery/chrome");
+			done();
+		})
+		.then(null, function(err) {
+			assert.notOk(err, "should not fail");
+			done();
+		});
 });
 
 QUnit.module("uses pluginLoader's import if available", function(hooks) {

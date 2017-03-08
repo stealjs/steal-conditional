@@ -13,7 +13,10 @@
     "release:minor": "npm version minor && npm publish",
     "release:major": "npm version major && npm publish",
     "jshint": "jshint conditional.js test/. --config",
-    "test": "npm run jshint && testee test/index.html --browsers firefox --reporter Spec"
+    "pretest": "cp conditional.js test/relative-conditions/conditional.js",
+    "test:unit": "testee test/unit.html --browsers firefox --reporter Spec",
+    "test:composite": "testee test/composite.html --browsers firefox --reporter Spec",
+    "test": "npm run jshint && npm run test:unit && npm run test:composite"
   },
   "repository": {
     "type": "git",
@@ -29,13 +32,14 @@
   },
   "homepage": "https://github.com/stealjs/conditional",
   "devDependencies": {
+    "glob": "^7.1.1",
     "jshint": "^2.9.1",
+    "qunit-composite": "^2.0.0",
     "steal": "^1.0.8",
     "steal-css": "^1.1.1",
     "steal-qunit": "^1.0.1",
     "testdouble": "^1.4.1",
-    "testee": "^0.3.0",
-    "glob": "^7.1.1"
+    "testee": "^0.3.0"
   },
   "steal": {
     "plugins": [
