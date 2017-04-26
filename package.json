@@ -38,7 +38,7 @@
     "steal": "^1.0.8",
     "steal-css": "^1.1.1",
     "steal-qunit": "^1.0.1",
-    "testdouble": "^1.4.1",
+    "testdouble": "^2.1.2",
     "testee": "^0.4.0"
   },
   "steal": {
