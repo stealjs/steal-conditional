@@ -309,7 +309,9 @@ define(['module'], function(module) {
 					}
 				};
 
-				var pluginLoader = loader.pluginLoader || loader;
+				var isBuild = (loader.env || "").indexOf("build") === 0;
+				var pluginLoader = isBuild ? loader : (loader.pluginLoader || loader);
+
 				return pluginLoader["import"](conditionModule, { name: parentName, address: parentAddress })
 					.then(function(m) {
 						return pluginLoader
@@ -320,8 +322,6 @@ define(['module'], function(module) {
 							});
 					})
 					.then(function(m) {
-						var isBuild = (loader.env || "").indexOf("build") === 0;
-
 						return isBuild ?
 							handleConditionalBuild() :
 							handleConditionalEval(m);
