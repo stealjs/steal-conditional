@@ -80,9 +80,11 @@ define(['module'], function(module) {
 					conditionalMatch[0].substr(2);
 
 				var conditionExport = "default";
-				var conditionExportIndex = conditionModule
-					.replace(/^(?:\.+\/)+./g, "") // removes './' or '../' in relative names
-					.indexOf(".");
+				var conditionExportParts = conditionModule
+					.match(/^(?:\.\/|\.\.\/)+/); // split './' or '../' in relative names
+
+				var conditionExportIndex = conditionModule.indexOf(".",
+					conditionExportParts && conditionExportParts[0].length); // only look for export
 
 				if (conditionExportIndex !== -1) {
 					conditionExport = conditionModule.substr(conditionExportIndex + 1);

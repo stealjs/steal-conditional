@@ -8,4 +8,6 @@ QUnit.test("works", function(assert) {
 	assert.notOk(foo === "polyfill", "should not load polyfill");
 });
 
+require("~/some/deep/folder/test");
+
 QUnit.start();
