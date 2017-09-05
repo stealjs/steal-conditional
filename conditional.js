@@ -1,4 +1,5 @@
-define(['module'], function(module) {
+define(["module", "exports"], function(module, exports) {
+	exports.extensionBuilder = "steal-conditional/slim";
 
 	function addConditionals(loader) {
 		var conditionalRegEx = /#\{[^\}]+\}|#\?.+$/;
@@ -41,6 +42,10 @@ define(['module'], function(module) {
 			}
 
 			return Promise.resolve();
+		}
+
+		function pushIfUnique(array, item) {
+			return array.indexOf(item) === -1 ? array.push(item) : array.length;
 		}
 
 		/**
@@ -142,23 +147,75 @@ define(['module'], function(module) {
 				 */
 				//!steal-remove-start
 				handleConditionalBuild = function() {
+					var nameWithConditional = name;
 					var PLACEHOLDER = "__PLACEHOLDER__";
-					var setBundlesPromise = Promise.resolve();
+
+					// remove the conditional and the trailing slash
+					var nameSansConditional = nameWithConditional
+						.replace(conditionalRegEx, PLACEHOLDER)
+						.replace(/\/+$/, "");
+
+					var normalizeConditionModule = loader.normalize(
+						conditionModule,
+						parentName,
+						parentAddress,
+						pluginNormalize
+					);
+
+					var normalizeNameSansConditional = loader.normalize(
+						nameSansConditional,
+						parentName,
+						parentAddress,
+						pluginNormalize
+					);
+
+					var setLoaderConfig = Promise
+						.all([
+							normalizeNameSansConditional,
+							normalizeConditionModule
+						])
+						// normalize the identifiers that make the condition
+						// on their own then re-build the condition
+						.then(function(names) {
+							var res;
+							var id = names[0];
+							var cond = names[1];
+
+							if (conditionExportIndex !== -1) {
+								cond = cond + "." + conditionExport;
+							}
+
+							if (substitution) {
+								res = id.replace(PLACEHOLDER, "#{" + cond + "}");
+							} else {
+								var prefix = booleanNegation ? "#?~" : "#?";
+								res = id.replace(PLACEHOLDER, prefix + cond);
+							}
+
+							return [res, names[1]];
+						})
+						.then(function(names) {
+							if (loader.normalizeMap) {
+								loader.normalizeMap[nameWithConditional] = names[0];
+							}
+							if (loader.slimConfig) {
+								pushIfUnique(loader.slimConfig.extensions, module.id);
+								pushIfUnique(loader.slimConfig.identifiersToResolve, names[0]);
+								pushIfUnique(loader.slimConfig.toMap, names[1]);
+							}
+						});
 
 					// make sure loader.bundle is an array
-					loader.bundle = typeof loader.bundle === "undefined" ?
-						[] : loader.bundle;
+					loader.bundle =
+						typeof loader.bundle === "undefined" ? [] : loader.bundle;
 
 					if (substitution) {
 						var glob = null;
-						var nameWithConditional = name;
 
-						// remove the conditional and the trailing slash
-						var nameWithoutConditional = name
-							.replace(conditionalRegEx, PLACEHOLDER)
-							.replace(/\/+$/, "");
-
-						setBundlesPromise = getGlob()
+						setLoaderConfig = setLoaderConfig
+							.then(function() {
+								return getGlob();
+							})
 							.then(function(nodeGlob) {
 								// in the browser we don't load the node modules
 								if (!nodeGlob) {
@@ -171,8 +228,7 @@ define(['module'], function(module) {
 								// call the full normalize in case the condition
 								// module is using the tilde lookup scheme or the
 								// package name
-								return loader.normalize.call(loader, nameWithoutConditional,
-									parentName, parentAddress, pluginNormalize);
+								return normalizeNameSansConditional;
 							})
 							.then(function(normalized) {
 								return loader.locate({
@@ -188,8 +244,11 @@ define(['module'], function(module) {
 								return new Promise(function(resolve, reject) {
 									var options = {
 										cwd: cwd,
-										dot: true, nobrace: true, noglobstar: true,
-										noext: true, nodir: true
+										dot: true,
+										nobrace: true,
+										noglobstar: true,
+										noext: true,
+										nodir: true
 									};
 
 									glob(pattern, options, function(err, files) {
@@ -262,9 +321,14 @@ define(['module'], function(module) {
 					}
 
 					name = "@empty";
-					return setBundlesPromise.then(function() {
-						return normalize.call(loader, name, parentName,
-							parentAddress, pluginNormalize);
+					return setLoaderConfig.then(function() {
+						return normalize.call(
+							loader,
+							name,
+							parentName,
+							parentAddress,
+							pluginNormalize
+						);
 					});
 				};
 				//!steal-remove-end
