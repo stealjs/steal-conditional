@@ -11,7 +11,6 @@ define(["module", "exports"], function(module, exports) {
 			loader._extensions.push(addConditionals);
 		}
 
-		loader._conditionalModuleDeps = {};
 		loader.set("@@conditional-helpers", loader.newModule({
 			isConditionalModuleName: function(moduleName){
 				return conditionalRegEx.test(moduleName);
@@ -31,14 +30,6 @@ define(["module", "exports"], function(module, exports) {
 		function includeInBuild(loader, name) {
 			var load = loader.getModuleLoad(name);
 			load.metadata.includeInBuild = true;
-		}
-
-		function markForMetadata(loader, parentName, name) {
-			let deps = loader._conditionalModuleDeps[parentName];
-			if(!deps) {
-				deps = loader._conditionalModuleDeps[parentName] = [];
-			}
-			pushIfUnique(deps, name);
 		}
 
 		// get some node modules through @node-require which is a noop in the browser
@@ -157,8 +148,7 @@ define(["module", "exports"], function(module, exports) {
 				//!steal-remove-start
 				handleConditionalBuild = function() {
 					var nameWithConditional = name;
-						var PLACEHOLDER = "__PLACEHOLDER__";
-						var normalizedConditionModule;
+					var PLACEHOLDER = "__PLACEHOLDER__";
 
 					// remove the conditional and the trailing slash
 					var nameSansConditional = nameWithConditional
@@ -190,7 +180,6 @@ define(["module", "exports"], function(module, exports) {
 							var res;
 							var id = names[0];
 							var cond = names[1];
-							normalizedConditionModule = cond;
 
 							if (conditionExportIndex !== -1) {
 								cond = cond + "." + conditionExport;
@@ -333,21 +322,18 @@ define(["module", "exports"], function(module, exports) {
 
 					name = "@empty";
 					return setLoaderConfig.then(function() {
-						return Promise.resolve(normalize.call(
+						return normalize.call(
 							loader,
 							name,
 							parentName,
 							parentAddress,
 							pluginNormalize
-						)).then(function(normalizedName) {
-							markForMetadata(loader, normalizedName, normalizedConditionModule);
-							return normalizedName;
-						});
+						);
 					});
 				};
 				//!steal-remove-end
 
-				var handleConditionalEval = function(m, conditionModule) {
+				var handleConditionalEval = function(m) {
 					var conditionValue = (typeof m === "object") ?
 						readMemberExpression(conditionExport, m) : m;
 
@@ -385,11 +371,7 @@ define(["module", "exports"], function(module, exports) {
 					} else {
 						// call the full normalize in case the module name
 						// is an npm package (that needs to be normalized)
-						return loader.normalize.call(loader, name, parentName, parentAddress, pluginNormalize)
-						.then(function(normalizedName) {
-							markForMetadata(loader, normalizedName, conditionModule);
-							return normalizedName;
-						});
+						return loader.normalize.call(loader, name, parentName, parentAddress, pluginNormalize);
 					}
 				};
 
@@ -402,27 +384,17 @@ define(["module", "exports"], function(module, exports) {
 							.normalize(conditionModule, parentName, parentAddress, pluginNormalize)
 							.then(function(fullName) {
 								includeInBuild(pluginLoader, fullName);
-								return { m: m, fullName: fullName };
+								return m;
 							});
 					})
-					.then(function(res) {
+					.then(function(m) {
 						return isBuild ?
-							handleConditionalBuild(res.fullName) :
-							handleConditionalEval(res.m, res.fullName);
+							handleConditionalBuild() :
+							handleConditionalEval(m);
 					});
 			}
 
 			return Promise.resolve(normalize.call(loader, name, parentName, parentAddress, pluginNormalize));
-		};
-
-		var locate = loader.locate;
-
-		loader.locate = function(load) {
-			if(loader._conditionalModuleDeps[load.name]) {
-				load.metadata.conditionDependencies = loader._conditionalModuleDeps[load.name];
-			}
-
-			return locate.apply(this, arguments);
 		};
 	}
 
