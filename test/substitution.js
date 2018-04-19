@@ -83,6 +83,48 @@ QUnit.module("with valid es6 substitution module export", function(hooks) {
 			   testConditionModuleInBuild);
 });
 
+QUnit.module("with load.metadata for conditional modules", function(hooks) {
+	hooks.beforeEach(function() {
+		loader.delete("thing");
+		loader.delete("mootools/chrome");
+		var oldFetch = this.oldFetch = loader.fetch;
+
+		loader.fetch = function(load) {
+			if(load.name === "thing") {
+				return Promise.resolve("module.exports = 'chrome';");
+			} else if(load.name === "mootools/chrome") {
+				return Promise.resolve("module.exports = {};");
+			} else {
+				return oldFetch.call(loader, load);
+			}
+		};
+	});
+
+	hooks.afterEach(function() {
+		loader.fetch = this.oldFetch;
+	});
+
+	QUnit.test("Substitution syntax adds the condition module", function(assert) {
+		var done = assert.async();
+
+		// browser's default export must be a string
+		loader.import("mootools/#{thing}")
+			.then(function() {
+				var load = loader.getModuleLoad("mootools/chrome");
+
+				assert.ok(load.metadata.conditionDependencies, "array exists");
+				assert.equal(load.metadata.conditionDependencies.length, 1, "there is one");
+				assert.equal(load.metadata.conditionDependencies[0], "thing", "right one");
+
+				done();
+			})
+			.catch(function(err) {
+				assert.ok(false, "Should have worked");
+				done();
+			});
+	});
+});
+
 function testInvalidSubstitutionModuleExport(assert) {
 	var done = assert.async();
 
