@@ -85,6 +85,12 @@ define(["module", "exports"], function(module, exports) {
 					conditionalMatch[0].substr(2);
 
 				var conditionExport = "default";
+
+				var booleanNegation = !substitution && conditionModule[0] === "~";
+				if (booleanNegation) {
+					conditionModule = conditionModule.substr(1);
+				}
+
 				var conditionExportParts = conditionModule
 					.match(/^(?:\.\/|\.\.\/)+/); // split './' or '../' in relative names
 
@@ -94,11 +100,6 @@ define(["module", "exports"], function(module, exports) {
 				if (conditionExportIndex !== -1) {
 					conditionExport = conditionModule.substr(conditionExportIndex + 1);
 					conditionModule = conditionModule.substr(0, conditionExportIndex);
-				}
-
-				var booleanNegation = !substitution && conditionModule[0] === "~";
-				if (booleanNegation) {
-					conditionModule = conditionModule.substr(1);
 				}
 
 				var handleConditionalBuild = function() {};
