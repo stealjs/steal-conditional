@@ -317,7 +317,12 @@ define(["module", "exports"], function(module, exports) {
 					}
 					// boolean conditional syntax
 					else {
-						loader.bundle.push(name.replace(conditionalRegEx, ""));
+						var bundleName = name.replace(conditionalRegEx, "");
+						var isBundle = loader.bundle.indexOf(bundleName) !== -1;
+
+						if(!isBundle) {
+							loader.bundle.push(bundleName);
+						}
 					}
 
 					name = "@empty";
