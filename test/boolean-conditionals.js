@@ -227,8 +227,12 @@ QUnit.module("conditional module build", function(hooks) {
 
 		loader.normalize("jquery#?needs-jquery")
 			.then(function(name) {
-				assert.ok(loader.bundle.indexOf("jquery") !== -1);
 				assert.equal(name, "@empty");
+				return loader.normalize("jquery#?needs-jquery");
+			})
+			.then(function() {
+				assert.ok(loader.bundle.indexOf("jquery") !== -1);
+				assert.equal(loader.bundle.length, 1, "The bundled added once");
 				done();
 			})
 			.catch(function(err) {
