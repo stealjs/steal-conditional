@@ -35,7 +35,7 @@
     "glob": "^7.1.1",
     "jshint": "^2.9.1",
     "qunit-composite": "^2.0.0",
-    "steal": "^1.0.8",
+    "steal": "^2.1.9",
     "steal-css": "^1.1.1",
     "steal-qunit": "^1.0.1",
     "testdouble": "^3.0.0",
