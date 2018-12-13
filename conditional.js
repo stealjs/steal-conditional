@@ -86,7 +86,7 @@ define(["module", "exports"], function(module, exports) {
 
 				var conditionExport = "default";
 
-				var booleanNegation = !substitution && conditionModule[0] === "~";
+				var booleanNegation = !substitution && conditionModule[0] === "^";
 				if (booleanNegation) {
 					conditionModule = conditionModule.substr(1);
 				}
@@ -189,7 +189,7 @@ define(["module", "exports"], function(module, exports) {
 							if (substitution) {
 								res = id.replace(PLACEHOLDER, "#{" + cond + "}");
 							} else {
-								var prefix = booleanNegation ? "#?~" : "#?";
+								var prefix = booleanNegation ? "#?^" : "#?";
 								res = id.replace(PLACEHOLDER, prefix + cond);
 							}
 
@@ -335,8 +335,16 @@ define(["module", "exports"], function(module, exports) {
 				//!steal-remove-end
 
 				var handleConditionalEval = function(m) {
-					var conditionValue = (typeof m === "object") ?
-						readMemberExpression(conditionExport, m) : m;
+					var conditionValue;
+					if(typeof m === "object"){
+						if(m.__esModule){ // es6-module
+							conditionValue = m[conditionExport];
+						}else{ // cjs-module
+							conditionValue = readMemberExpression(conditionExport, m);
+						}
+					}else{
+						conditionValue = m;
+					}
 
 					if (substitution) {
 						if (typeof conditionValue !== "string") {

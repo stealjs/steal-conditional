@@ -158,6 +158,36 @@ QUnit.module("es6 - true condition with `.` modifier", function(hooks) {
 			   testTrueConditionWithModifier);
 });
 
+QUnit.module("es6 - default boolean", function(hooks) {
+	hooks.beforeEach(function() {
+		loader.delete("browser");
+		var oldFetch = this.oldFetch = loader.fetch;
+
+		loader.fetch = function(load) {
+			return load.name === "is-true" ?
+				Promise.resolve("export default true;") :
+				oldFetch.call(loader, load);
+		};
+	});
+
+	hooks.afterEach(function() {
+		loader.fetch = this.oldFetch;
+	});
+
+	QUnit.test("normalizes name to special @empty module", function (assert) {
+		var done = assert.async();
+		loader.normalize("jquery#?^is-true")
+			.then(function(name) {
+				assert.equal(name, "@empty");
+				done();
+			})
+			.catch(function(err) {
+				assert.notOk(err, "should not fail");
+				done();
+			});
+	});
+});
+
 QUnit.module("with boolean conditional in a npm package name", function(hooks) {
 	hooks.beforeEach(function() {
 		this.loader = helpers.clone()

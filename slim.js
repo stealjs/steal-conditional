@@ -62,6 +62,11 @@ module.exports = function(stealRequire) {
 
 			var conditionExport = "default";
 
+			var booleanNegation = !substitution && conditionModule[0] === "^";
+			if (booleanNegation) {
+				conditionModule = conditionModule.substr(1);
+			}
+
 			/**
              * Get the index where the member expression is located (if any)
              *
@@ -87,18 +92,19 @@ module.exports = function(stealRequire) {
 				conditionModule = conditionModule.substr(0, conditionExportIndex);
 			}
 
-			var booleanNegation = !substitution && conditionModule[0] === "~";
-			if (booleanNegation) {
-				conditionModule = conditionModule.substr(1);
-			}
-
 			// need to turn conditionModule into a numeric id somehow.
 			var actualConditionModule = stealRequire(config.map[conditionModule]);
 
-			var conditionValue =
-				typeof actualConditionModule === "object"
-					? readMemberExpression(conditionExport, actualConditionModule)
-					: actualConditionModule;
+			var conditionValue;
+			if(typeof actualConditionModule === "object"){
+				if(actualConditionModule.__esModule){ // es6-module
+					conditionValue = actualConditionModule[conditionExport];
+				}else{ // cjs-module
+					conditionValue = readMemberExpression(conditionExport, actualConditionModule);
+				}
+			}else{
+				conditionValue = actualConditionModule;
+			}
 
 			if (substitution) {
 				moduleId = moduleId.replace(conditionalRegEx, conditionValue);
