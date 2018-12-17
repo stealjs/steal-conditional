@@ -73,7 +73,7 @@ import "es5-shim#?conditions.needs-es5shim"
 These conditions can also be negated via:
 
 ```
-import "es5-shim#?~is-es5-compatible"
+import "es5-shim#?^is-es5-compatible"
 ```
 
 ### Bundling conditional modules
