@@ -278,7 +278,7 @@ The part before the `#?` is the polyfill package name we had before, the interes
 
 > It is also possible to negate conditionals via:
 > ```js
-> import "document-register-element#?~supports-custom-elements";
+> import "document-register-element#?^supports-custom-elements";
 > ```
 > See `steal-conditional`'s [README](https://github.com/stealjs/steal-conditional/blob/master/README.md) for more details.
 
