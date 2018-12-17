@@ -68,7 +68,7 @@ import 'es5-shim#?conditions.needs-es5shim'
 These conditions can also be negated via:
 
 ```js
-import 'es5-shim#?~conditions.supports-es5'
+import 'es5-shim#?^conditions.supports-es5'
 ```
 
 ## License
