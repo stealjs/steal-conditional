@@ -1,4 +1,4 @@
-define(["module", "exports"], function(module, exports) {
+define(["module", "exports", "@loader"], function(module, exports, System) {
 	exports.extensionBuilder = "steal-conditional/slim";
 
 	function addConditionals(loader) {
