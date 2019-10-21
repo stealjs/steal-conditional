@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/stealjs/conditional",
   "devDependencies": {
-    "glob": "^7.1.1",
+    "glob": "^7.1.5",
     "jshint": "^2.9.1",
     "qunit-composite": "^2.0.0",
     "steal": "^1.12.6",
