@@ -33,7 +33,7 @@
   "homepage": "https://github.com/stealjs/conditional",
   "devDependencies": {
     "glob": "^7.1.1",
-    "jshint": "^2.9.1",
+    "jshint": "^2.11.1",
     "qunit-composite": "^2.0.0",
     "steal": "^1.12.6",
     "steal-css": "^1.3.2",
